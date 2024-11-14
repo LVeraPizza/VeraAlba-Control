@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Importar Excel y Exportar Stock</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.15/jspdf.plugin.autotable.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f6f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 30px;
+            margin: 20px auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            width: 90%;
+            max-width: 1100px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 25px;
+        }
+
+        input[type="file"] {
+            margin: 20px 0;
+            padding: 12px 20px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            background-color: #f1f8ff;
+        }
+
+        input[type="file"]:hover {
+            border-color: #0056b3;
+        }
+
+        button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .table-container {
+            margin-top: 20px;
+            overflow-x: auto;
+            border-radius: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+            text-align: left;
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 16px;
+            border-bottom: 1px solid #f1f1f1;
+            text-align: center;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f1f1f1;
+        }
+
+        tr:hover {
+            background-color: #e2e6ea;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+
+            input[type="file"],
+            button {
+                width: 90%;
+            }
+
+            table {
+                font-size: 14px;
+            }
+
+            th,
+            td {
+                padding: 12px;
+            }
+
+            h2 {
+                font-size: 22px;
+            }
+
+            .totals {
+                max-width: 90%;
+            }
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            z-index: 1000;
+            border-top: 2px solid black;
+        }
+
+        footer img {
+            width: 50px;
+            height: auto;
+            margin: 10px 20px;
+        }
+
+        .separator {
+            width: 2px;
+            height: 50px;
+            background-color: black;
+            margin: 0 30px;
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Importar Excel y Exportar Stock</h2>
+        <input type="file" id="fileInput" accept=".xlsx, .xls" />
+        <button onclick="downloadPDF()">Descargar PDF</button>
+
+        <div class="table-container">
+            <table id="dataTable"></table>
+        </div>
+
+    </div>
+
+    <script>
+        // Leer archivo Excel
+        document.getElementById("fileInput").addEventListener("change", handleFile, false);
+
+        function handleFile(event) {
+            const file = event.target.files[0];
+            const reader = new FileReader();
+
+            reader.onload = function (e) {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const sheetName = workbook.SheetNames[0]; // Primer hoja
+                const worksheet = workbook.Sheets[sheetName];
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                const filteredData = filterColumns(jsonData); // Filtrar columnas
+                displayData(filteredData);
+            };
+
+            reader.readAsBinaryString(file);
+        }
+
+        // Filtrar columnas según las que necesitamos (3, 5, 11, 15)
+        function filterColumns(data) {
+            const columnsToKeep = [2, 4, 10]; // Mantener columnas 4, 6, 12, 16 (índices 3, 5, 11, 15)
+            return data.map(row => columnsToKeep.map(index => row[index]));
+        }
+
+        // Mostrar datos en la tabla
+        function displayData(data) {
+            const table = document.getElementById("dataTable");
+            table.innerHTML = ""; // Limpiar tabla antes de agregar
+
+
+            // Agregar filas de datos
+            data.forEach(row => {
+                const tr = document.createElement("tr");
+                row.forEach(cell => {
+                    const td = document.createElement("td");
+                    td.textContent = cell;
+                    tr.appendChild(td);
+                });
+                table.appendChild(tr);
+            });
+        }
+
+
+        // Descargar el contenido como PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Convertir la tabla HTML a PDF usando autoTable
+            doc.autoTable({ html: '#dataTable', startY: 20 });
+
+
+            // Guardar el PDF
+            doc.save('stock.productos.pdf');
+        }
+    </script>
+
+</body>
+
+<footer>
+    <a href="index.html">
+        <img src="sueldos.png" alt="Logo 1">
+    </a>
+    <div class="separator"></div>
+
+    <a href="ventas_semanales.html">
+        <img src="ventas.png" alt="Logo 2">
+    </a>
+
+    <div class="separator"></div>
+
+    <a href="stock.html">
+        <img src="stock.png" alt="Logo 2">
+    </a>
+
+    <div class="separator"></div>
+
+    <a href="gastos.html">
+        <img src="gastos.png" alt="Logo 2">
+    </a>
+</footer>
+
+</html>

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribución de Ventas</title>
+    <!-- Usamos la CDN actualizada de jsPDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.19/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            text-align: center;
+            padding: 40px;
+            margin: 40px auto;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+            width: 80%;
+            max-width: 700px;
+        }
+
+        h2 {
+            color: #333;
+            font-size: 32px;
+            margin-bottom: 40px;
+        }
+
+        input[type="number"] {
+            padding: 15px;
+            border: 2px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+            background-color: #f5f5f5;
+            width: 80%;
+            max-width: 300px;
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        button {
+            padding: 15px 30px;
+            border: none;
+            background-color: #28a745;
+            color: #fff;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 5px;
+            margin-top: 30px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #218838;
+        }
+
+        table {
+            margin-top: 40px;
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 16px;
+            text-align: left;
+            background-color: #fff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        th,
+        td {
+            padding: 18px;
+            border-bottom: 1px solid #f1f1f1;
+        }
+
+        td {
+            background-color: #f9f9f9;
+        }
+
+        th {
+            background-color: #007bff;
+            color: #fff;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        tr:nth-child(even) td {
+            background-color: #f1f1f1;
+        }
+
+        tr:hover {
+            background-color: #e2e2e2;
+        }
+
+        footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            background-color: white;
+            color: white;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            z-index: 1000;
+            border-top: 2px solid black;
+        }
+
+        footer img {
+            width: 50px;
+            height: auto;
+            margin: 10px 20px;
+        }
+
+        .separator {
+            width: 2px;
+            height: 50px;
+            background-color: black;
+            margin: 0 30px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h2>Distribución de Ventas</h2>
+        <input type="number" id="totalVentas" placeholder="Ingrese el Total Ventas" />
+        <button onclick="calcularDistribucion()">Calcular Distribución</button>
+
+        <table id="tablaDistribucion" style="display:none;">
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Federico Saravia (32%)</td>
+                    <td id="federico"></td>
+                </tr>
+                <tr>
+                    <td>Debora Fazzini (32%)</td>
+                    <td id="debora"></td>
+                </tr>
+                <tr>
+                    <td>Reserva (6%)</td>
+                    <td id="reserva"></td>
+                </tr>
+                <tr>
+                    <td>Gastos (30%)</td>
+                    <td id="gastos"></td>
+                </tr>
+            </tbody>
+        </table>
+
+        <button onclick="downloadPDF()" style="display:none;" id="btnPDF">Exportar a PDF</button>
+    </div>
+
+    <script>
+        // Función para calcular la distribución
+        function calcularDistribucion() {
+            const totalVentas = parseFloat(document.getElementById('totalVentas').value);
+            if (!isNaN(totalVentas) && totalVentas > 0) {
+                // Calcular las distribuciones
+                const federico = totalVentas * 0.33;
+                const debora = totalVentas * 0.33;
+                const gastos = totalVentas * 0.30;
+                const reserva = totalVentas * 0.4;
+
+                // Actualizar la tabla con los valores calculados
+                document.getElementById('federico').innerText = `$${federico.toFixed(2)}`;
+                document.getElementById('debora').innerText = `$${debora.toFixed(2)}`;
+                document.getElementById('reserva').innerText = `$${reserva.toFixed(2)}`;
+                document.getElementById('gastos').innerText = `$${gastos.toFixed(2)}`;
+
+                // Mostrar la tabla y el botón para descargar PDF
+                document.getElementById('tablaDistribucion').style.display = 'table';
+                document.getElementById('btnPDF').style.display = 'inline-block';
+            } else {
+                alert('Por favor, ingrese un valor válido para el total de ventas.');
+            }
+        }
+
+        // Función para descargar el PDF
+        function downloadPDF() {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            // Título del documento PDF
+            doc.setFontSize(18);
+            doc.text('Distribución de Ventas', 14, 20);
+
+            // Agregar la tabla
+            doc.autoTable({
+                head: [['Concepto', 'Valor']],
+                body: [
+                    ['Federico Saravia (32%)', document.getElementById('federico').innerText],
+                    ['Debora Fazzini (32%)', document.getElementById('debora').innerText],
+                    ['Reserva (6%)', document.getElementById('reserva').innerText],
+                    ['Gastos (30%)', document.getElementById('gastos').innerText],
+                ],
+                startY: 30
+            });
+
+            // Guardar el PDF
+            doc.save('distribucion_ventas.pdf');
+        }
+    </script>
+
+</body>
+
+<footer>
+    <a href="index.html">
+        <img src="sueldos.png" alt="Logo 1">
+    </a>
+    <div class="separator"></div>
+
+    <a href="ventas_semanales.html">
+        <img src="ventas.png" alt="Logo 2">
+    </a>
+
+    <div class="separator"></div>
+
+    <a href="stock.html">
+        <img src="stock.png" alt="Logo 2">
+    </a>
+
+    <div class="separator"></div>
+
+    <a href="gastos.html">
+        <img src="gastos.png" alt="Logo 2">
+    </a>
+</footer>
+
+</html>
