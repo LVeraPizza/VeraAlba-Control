@@ -144,16 +144,12 @@
             </thead>
             <tbody>
                 <tr>
-                    <td>Federico Saravia (32%)</td>
+                    <td>Federico Saravia (35%)</td>
                     <td id="federico"></td>
                 </tr>
                 <tr>
-                    <td>Debora Fazzini (32%)</td>
+                    <td>Debora Fazzini (35%)</td>
                     <td id="debora"></td>
-                </tr>
-                <tr>
-                    <td>Reserva (6%)</td>
-                    <td id="reserva"></td>
                 </tr>
                 <tr>
                     <td>Gastos (30%)</td>
@@ -171,15 +167,13 @@
             const totalVentas = parseFloat(document.getElementById('totalVentas').value);
             if (!isNaN(totalVentas) && totalVentas > 0) {
                 // Calcular las distribuciones
-                const federico = totalVentas * 0.33;
-                const debora = totalVentas * 0.33;
+                const federico = totalVentas * 0.35;
+                const debora = totalVentas * 0.35;
                 const gastos = totalVentas * 0.30;
-                const reserva = totalVentas * 0.4;
 
                 // Actualizar la tabla con los valores calculados
                 document.getElementById('federico').innerText = `$${federico.toFixed(2)}`;
                 document.getElementById('debora').innerText = `$${debora.toFixed(2)}`;
-                document.getElementById('reserva').innerText = `$${reserva.toFixed(2)}`;
                 document.getElementById('gastos').innerText = `$${gastos.toFixed(2)}`;
 
                 // Mostrar la tabla y el botón para descargar PDF
@@ -203,9 +197,8 @@
             doc.autoTable({
                 head: [['Concepto', 'Valor']],
                 body: [
-                    ['Federico Saravia (32%)', document.getElementById('federico').innerText],
-                    ['Debora Fazzini (32%)', document.getElementById('debora').innerText],
-                    ['Reserva (6%)', document.getElementById('reserva').innerText],
+                    ['Federico Saravia (35%)', document.getElementById('federico').innerText],
+                    ['Debora Fazzini (35%)', document.getElementById('debora').innerText],
                     ['Gastos (30%)', document.getElementById('gastos').innerText],
                 ],
                 startY: 30
